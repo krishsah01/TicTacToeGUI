@@ -1,5 +1,7 @@
+import javax.swing.SwingUtilities;
+
 public class TicTacToeRunner {
     public static void main(String[] args) {
-        new TicTacToeFrame();
+        SwingUtilities.invokeLater(TicTacToeFrame::new);
     }
 }

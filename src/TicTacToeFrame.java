@@ -5,68 +5,97 @@ import java.awt.event.ActionListener;
 
 public class TicTacToeFrame {
     private JFrame frame;
-    private JButton[][] buttons = new JButton[3][3];
-    private String[][] board = new String[3][3]; // Board state
+    private TicTacToeButton[][] buttons = new TicTacToeButton[3][3];
+    private String[][] board = new String[3][3];
     private String currentPlayer = "X";
+
+    private class TicTacToeButton extends JButton {
+        private int row;
+        private int col;
+
+        public TicTacToeButton(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public int getCol() {
+            return col;
+        }
+    }
 
     public TicTacToeFrame() {
         frame = new JFrame("Tic Tac Toe");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 450); // Adjusted size for the Quit button
+        frame.setSize(400, 450);
         frame.setLayout(new BorderLayout());
 
-        // Game Grid Panel
         JPanel gridPanel = new JPanel();
         gridPanel.setLayout(new GridLayout(3, 3));
 
-        // Initialize board and buttons
+        ButtonClickListener listener = new ButtonClickListener();
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 board[i][j] = " ";
-                buttons[i][j] = new JButton(" ");
+                buttons[i][j] = new TicTacToeButton(i, j);
                 buttons[i][j].setFont(new Font("Arial", Font.BOLD, 40));
-                buttons[i][j].addActionListener(new ButtonClickListener(i, j));
+                buttons[i][j].addActionListener(listener);
                 gridPanel.add(buttons[i][j]);
             }
         }
 
-        // Quit Button Panel
         JPanel bottomPanel = new JPanel();
         JButton quitButton = new JButton("Quit");
         quitButton.setFont(new Font("Arial", Font.BOLD, 20));
-        quitButton.addActionListener(e -> System.exit(0)); // Closes the window
+        quitButton.addActionListener(e -> System.exit(0));
         bottomPanel.add(quitButton);
 
-        // Add components to the frame
         frame.add(gridPanel, BorderLayout.CENTER);
-        frame.add(bottomPanel, BorderLayout.SOUTH); // Quit button at the bottom
+        frame.add(bottomPanel, BorderLayout.SOUTH);
 
         frame.setVisible(true);
     }
 
     private class ButtonClickListener implements ActionListener {
-        int row, col;
-
-        public ButtonClickListener(int row, int col) {
-            this.row = row;
-            this.col = col;
-        }
-
         @Override
         public void actionPerformed(ActionEvent e) {
+            TicTacToeButton clickedButton = (TicTacToeButton) e.getSource();
+            int row = clickedButton.getRow();
+            int col = clickedButton.getCol();
+
             if (board[row][col].equals(" ")) {
                 board[row][col] = currentPlayer;
-                buttons[row][col].setText(currentPlayer);
+                clickedButton.setText(currentPlayer);
+
                 if (checkWinner()) {
-                    JOptionPane.showMessageDialog(frame, currentPlayer + " wins!");
-                    resetGame();
+                    handleGameEnd(currentPlayer + " wins!");
                 } else if (isBoardFull()) {
-                    JOptionPane.showMessageDialog(frame, "It's a tie!");
-                    resetGame();
+                    handleGameEnd("It's a tie!");
                 } else {
                     switchPlayer();
                 }
+            } else {
+                JOptionPane.showMessageDialog(frame, "Invalid move. Please choose an empty square.");
             }
+        }
+    }
+
+    private void handleGameEnd(String message) {
+        int response = JOptionPane.showConfirmDialog(
+                frame,
+                message + "\nDo you want to play again?",
+                "Game Over",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            resetGame();
+        } else {
+            System.exit(0);
         }
     }
 
@@ -76,11 +105,25 @@ public class TicTacToeFrame {
 
     private boolean checkWinner() {
         for (int i = 0; i < 3; i++) {
-            if (board[i][0].equals(currentPlayer) && board[i][1].equals(currentPlayer) && board[i][2].equals(currentPlayer)) return true;
-            if (board[0][i].equals(currentPlayer) && board[1][i].equals(currentPlayer) && board[2][i].equals(currentPlayer)) return true;
+            // Check rows
+            if (board[i][0].equals(currentPlayer) &&
+                    board[i][1].equals(currentPlayer) &&
+                    board[i][2].equals(currentPlayer)) return true;
+
+            // Check columns
+            if (board[0][i].equals(currentPlayer) &&
+                    board[1][i].equals(currentPlayer) &&
+                    board[2][i].equals(currentPlayer)) return true;
         }
-        if (board[0][0].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][2].equals(currentPlayer)) return true;
-        if (board[0][2].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][0].equals(currentPlayer)) return true;
+
+        // Check diagonals
+        if (board[0][0].equals(currentPlayer) &&
+                board[1][1].equals(currentPlayer) &&
+                board[2][2].equals(currentPlayer)) return true;
+
+        if (board[0][2].equals(currentPlayer) &&
+                board[1][1].equals(currentPlayer) &&
+                board[2][0].equals(currentPlayer)) return true;
 
         return false;
     }
